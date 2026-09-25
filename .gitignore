@@ -1,0 +1,5 @@
+build/
+node_modules/
+tree-sitter-plain-text.wasm
+tree-sitter-plain_text.wasm
+*.log

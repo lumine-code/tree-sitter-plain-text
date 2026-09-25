@@ -1,0 +1,27 @@
+{
+  "grammars": [
+    {
+      "name": "plain_text",
+      "camelcase": "PlainText",
+      "scope": "text.plain",
+      "path": ".",
+      "file-types": ["txt"]
+    }
+  ],
+  "metadata": {
+    "version": "1.0.0",
+    "license": "MIT",
+    "description": "Parses plain text into paragraphs and lines with Tree-sitter.",
+    "authors": [
+      {
+        "name": "lumine-code"
+      }
+    ],
+    "links": {
+      "repository": "https://github.com/lumine-code/tree-sitter-plain-text"
+    }
+  },
+  "bindings": {
+    "node": true
+  }
+}

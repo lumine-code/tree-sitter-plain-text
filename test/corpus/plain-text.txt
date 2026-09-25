@@ -1,0 +1,61 @@
+==================
+Empty document
+==================
+
+---
+
+(document)
+
+==================
+One line
+==================
+Plain text.
+---
+
+(document
+  (paragraph
+    (line)))
+
+==================
+Leading and trailing blanks
+==================
+
+
+First paragraph.
+
+
+---
+
+(document
+  (paragraph
+    (line)))
+
+==================
+Paragraphs and blank lines
+==================
+First line.
+Second line.
+
+Third paragraph.
+   	
+Fourth paragraph.
+---
+
+(document
+  (paragraph
+    (line)
+    (line))
+  (paragraph
+    (line))
+  (paragraph
+    (line)))
+
+==================
+Unicode and punctuation
+==================
+Zażółć gęślą jaźń 🙂 — []{}() / \ " ' …
+---
+
+(document
+  (paragraph
+    (line)))
