@@ -17,6 +17,7 @@ module.exports = [
         choice: "readonly",
         eof: "readonly",
         optional: "readonly",
+        prec: "readonly",
         repeat: "readonly",
         repeat1: "readonly",
         seq: "readonly",

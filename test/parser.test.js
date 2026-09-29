@@ -73,3 +73,53 @@ test("updates paragraph boundaries incrementally", () => {
   assert.strictEqual(tree.rootNode.hasError, false);
   assert.strictEqual(tree.rootNode.toString(), "(document (paragraph (line) (line) (line)))");
 });
+
+test("keeps hidden line groups out of the public tree at every group boundary", () => {
+  for (const count of [1, 7, 8, 9, 63, 64, 65, 66, 127, 128, 129]) {
+    for (const ending of ["\n", "\r\n", "\r"]) {
+      const source = Array.from({ length: count }, (_, row) => `line ${row}`).join(ending);
+      const tree = parse(`${source}${ending}${ending}last paragraph`);
+      assert.strictEqual(tree.rootNode.hasError, false);
+      assert.deepStrictEqual(
+        tree.rootNode.namedChildren.map((node) => node.type),
+        ["paragraph", "paragraph"],
+      );
+      const paragraph = tree.rootNode.namedChild(0);
+      assert.strictEqual(paragraph.namedChildCount, count);
+      assert.ok(paragraph.namedChildren.every((node) => node.type === "line"));
+      assert.strictEqual(paragraph.namedChild(count - 1).text, `line ${count - 1}`);
+    }
+  }
+});
+
+test("reuses unchanged line groups when typing at the end of a large paragraph", () => {
+  const parser = new Parser();
+  parser.setLanguage(PlainText);
+  const lineCount = 4097;
+  const source = "line\n".repeat(lineCount);
+  const oldTree = parser.parse(source);
+  const end = oldTree.rootNode.endPosition;
+  oldTree.edit({
+    startIndex: source.length,
+    oldEndIndex: source.length,
+    newEndIndex: source.length + 1,
+    startPosition: end,
+    oldEndPosition: end,
+    newEndPosition: { row: end.row, column: 1 },
+  });
+
+  let processCount = 0;
+  parser.setLogger((message) => {
+    if (message === "process") processCount++;
+  });
+  const tree = parser.parse(`${source}x`, oldTree);
+  parser.setLogger(null);
+
+  assert.strictEqual(tree.rootNode.hasError, false);
+  assert.strictEqual(tree.rootNode.namedChild(0).namedChildCount, lineCount + 1);
+  assert.strictEqual(tree.rootNode.namedChild(0).namedChild(lineCount).text, "x");
+  assert.ok(
+    processCount < lineCount / 8,
+    `Incremental parse replayed ${processCount} states for ${lineCount} unchanged lines`,
+  );
+});
