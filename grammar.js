@@ -5,12 +5,36 @@ module.exports = grammar({
 
   rules: {
     document: ($) =>
-      seq(
-        repeat($._blank_line),
-        repeat(seq($.paragraph, repeat1($._blank_line))),
-        optional($.paragraph),
-        optional($._blank_tail),
+      seq(repeat($._blank_lines_64), repeat($._paragraphs_64), optional($._blank_tail)),
+
+    // Reuse complete paragraph runs too, rather than replaying the document's
+    // entire repetition whenever one paragraph or separator changes.
+    _paragraphs_64: ($) =>
+      prec.right(
+        seq($._paragraphs_8, ...Array.from({ length: 7 }, () => optional($._paragraphs_8))),
       ),
+
+    _paragraphs_8: ($) =>
+      prec.right(
+        seq(
+          $._paragraph_with_separator,
+          ...Array.from({ length: 7 }, () => optional($._paragraph_with_separator)),
+        ),
+      ),
+
+    _paragraph_with_separator: ($) =>
+      seq(
+        $.paragraph,
+        choice(seq($._blank_line, repeat($._blank_lines_64)), seq($._blank_tail, eof()), eof()),
+      ),
+
+    _blank_lines_64: ($) =>
+      prec.right(
+        seq($._blank_lines_8, ...Array.from({ length: 7 }, () => optional($._blank_lines_8))),
+      ),
+
+    _blank_lines_8: ($) =>
+      prec.right(seq($._blank_line, ...Array.from({ length: 7 }, () => optional($._blank_line)))),
 
     // Tree-sitter marks repetition branches as fragile and replays their
     // children on an edit. Bounded hidden groups let unchanged runs be reused

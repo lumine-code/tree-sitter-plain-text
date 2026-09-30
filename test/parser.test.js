@@ -123,3 +123,59 @@ test("reuses unchanged line groups when typing at the end of a large paragraph",
     `Incremental parse replayed ${processCount} states for ${lineCount} unchanged lines`,
   );
 });
+
+test("keeps paragraph and blank-line groups out of the public tree", () => {
+  for (const count of [1, 7, 8, 9, 63, 64, 65, 127, 128, 129]) {
+    for (const ending of ["\n", "\r\n", "\r"]) {
+      const paragraphs = Array.from({ length: count }, (_, index) => `paragraph ${index}`);
+      for (const suffix of ["", `${ending}${ending}`, `${ending}${ending}\t `]) {
+        const tree = parse(`${ending.repeat(65)}${paragraphs.join(ending.repeat(2))}${suffix}`);
+        assert.strictEqual(tree.rootNode.hasError, false);
+        assert.strictEqual(tree.rootNode.namedChildCount, count);
+        assert.deepStrictEqual(
+          tree.rootNode.namedChildren.map((node) => [node.type, node.namedChildCount, node.text]),
+          paragraphs.map((text, index) => [
+            "paragraph",
+            1,
+            `${text}${index < count - 1 || suffix ? ending : ""}`,
+          ]),
+        );
+      }
+    }
+  }
+});
+
+test("reuses unchanged paragraph groups for edits throughout a large document", () => {
+  const parser = new Parser();
+  parser.setLanguage(PlainText);
+  const count = 4097;
+  const source = "paragraph\n\n".repeat(count);
+  for (const paragraphIndex of [0, Math.floor(count / 2), count - 1]) {
+    const oldTree = parser.parse(source);
+    const index = paragraphIndex * "paragraph\n\n".length;
+    const position = { row: paragraphIndex * 2, column: 0 };
+    oldTree.edit({
+      startIndex: index,
+      oldEndIndex: index + 1,
+      newEndIndex: index + 1,
+      startPosition: position,
+      oldEndPosition: { row: position.row, column: 1 },
+      newEndPosition: { row: position.row, column: 1 },
+    });
+    let processCount = 0;
+    parser.setLogger((message) => {
+      if (message === "process") processCount++;
+    });
+    const updated = `${source.slice(0, index)}P${source.slice(index + 1)}`;
+    const tree = parser.parse(updated, oldTree);
+    parser.setLogger(null);
+    assert.strictEqual(tree.rootNode.hasError, false);
+    assert.strictEqual(tree.rootNode.toString(), parser.parse(updated).rootNode.toString());
+    assert.strictEqual(tree.rootNode.namedChildCount, count);
+    assert.strictEqual(tree.rootNode.namedChild(paragraphIndex).text, "Paragraph\n");
+    assert.ok(
+      processCount < count / 8,
+      `Incremental parse replayed ${processCount} states for ${count} unchanged paragraphs`,
+    );
+  }
+});
