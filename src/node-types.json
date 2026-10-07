@@ -3,10 +3,15 @@
     "type": "document",
     "named": true,
     "root": true,
+    "fields": {}
+  },
+  {
+    "type": "document_fragment",
+    "named": false,
     "fields": {},
     "children": {
       "multiple": true,
-      "required": false,
+      "required": true,
       "types": [
         {
           "type": "paragraph",
@@ -16,8 +21,18 @@
     }
   },
   {
+    "type": "line",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "paragraph",
     "named": true,
+    "fields": {}
+  },
+  {
+    "type": "paragraph_fragment",
+    "named": false,
     "fields": {},
     "children": {
       "multiple": true,
@@ -31,7 +46,7 @@
     }
   },
   {
-    "type": "line",
-    "named": true
+    "type": "line_fragment",
+    "named": false
   }
 ]

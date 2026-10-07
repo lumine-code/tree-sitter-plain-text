@@ -3,6 +3,7 @@ const load = require("node-gyp-build");
 
 const root = path.join(__dirname, "..", "..");
 module.exports = load(root);
+module.exports.parseOptions = require("./parse-options");
 
 try {
   module.exports.nodeTypeInfo = require("../../src/node-types.json");

@@ -14,8 +14,8 @@ module.exports = [
       globals: {
         ...globals.node,
         grammar: "readonly",
+        alias: "readonly",
         choice: "readonly",
-        eof: "readonly",
         optional: "readonly",
         prec: "readonly",
         repeat: "readonly",
